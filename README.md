@@ -64,6 +64,29 @@ Des tests automatisés couvrent l'API (authentification, création de liens, his
 - Les tests utilisent une base SQLite en mémoire et réinitialisent la base à chaque exécution.
 - Pour permettre les tests API avec Sanctum, le middleware `EnsureFrontendRequestsAreStateful` est commenté dans le groupe `api` du Kernel. **Il faut le réactiver pour la production.**
 
+## Déploiement et développement avec Docker
+
+Le projet est prêt à être lancé dans des conteneurs Docker avec MySQL :
+
+- Lancez simplement :
+  ```bash
+  docker-compose up --build
+  ```
+- L'application Laravel sera accessible sur le port 9000 (modifiable dans docker-compose.yml).
+- La base de données MySQL est fournie par le service `db` et persiste grâce à un volume Docker.
+
+**Exemple de variables d'environnement (.env) pour Docker :**
+```
+DB_CONNECTION=mysql
+DB_HOST=db
+DB_PORT=3306
+DB_DATABASE=urlshortener
+DB_USERNAME=user
+DB_PASSWORD=password
+```
+
+Adaptez le reste de votre `.env` selon vos besoins (clé, mail, etc.).
+
 ## Prévisualisation et sécurité des URL
 
 Chaque URL courte dispose d'une page de prévisualisation accessible via `/preview/{short_code}` :
