@@ -53,6 +53,17 @@ Ce projet est un service de raccourcissement d'URL (type bit.ly/tinyurl) dévelo
 - **Historique (`/history`)** : tableau listant tous les liens générés (code, URL d’origine, URL courte, date, clics, expiration).
 - Toutes ces pages sont intégrées à Laravel (Blade, navigation commune).
 
+## Tests automatisés (Feature/API)
+
+Des tests automatisés couvrent l'API (authentification, création de liens, historique, etc.) dans `tests/Feature`.
+
+- **Lancer tous les tests :**
+  ```bash
+  php artisan test --testsuite=Feature
+  ```
+- Les tests utilisent une base SQLite en mémoire et réinitialisent la base à chaque exécution.
+- Pour permettre les tests API avec Sanctum, le middleware `EnsureFrontendRequestsAreStateful` est commenté dans le groupe `api` du Kernel. **Il faut le réactiver pour la production.**
+
 ## Documentation API (Swagger)
 
 Une documentation interactive de l'API est intégrée au projet !

@@ -80,7 +80,12 @@
 - Peut être ouvert dans Swagger Editor pour visualisation, test, doc interactive.
 - Atout fort pour l’entretien : démontre la rigueur et la professionnalisation de l’API.
 
-## 10. Pages protégées et administration
+## 10. Pages protégées et Administration :
+Tests automatisés (Feature/API) :
+- Couverture complète des endpoints d'authentification, création de liens, historique, etc.
+- Tests Laravel dans tests/Feature, base SQLite en mémoire, reset à chaque test.
+- Pour permettre les tests API avec Sanctum, le middleware EnsureFrontendRequestsAreStateful est commenté dans Kernel (à réactiver en prod).
+- Démarche de debug : test de routage minimal, diagnostic middleware, correction progressive jusqu'à exécution complète des tests.
 - Certaines pages (raccourcissement, batch, historique) sont accessibles uniquement aux utilisateurs connectés.
 - Interface d'administration (login par défaut admin@admin.com/admin123), dashboard évolutif.
 - Affichage UX des messages de succès/erreur sur les formulaires.
