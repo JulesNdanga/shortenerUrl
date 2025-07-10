@@ -1,0 +1,67 @@
+# Questions/Réponses d'entretien – Projet Raccourcisseur d'URL Laravel
+
+## 1. Pourquoi avoir choisi cette architecture ?
+- J'ai suivi la structure standard Laravel (MVC) pour garantir la maintenabilité et la clarté.
+- Les modèles Eloquent facilitent la gestion des relations (ShortUrl <-> Click).
+- Les contrôleurs sont séparés : un pour l'API, un pour la redirection, ce qui isole bien les responsabilités.
+
+## 2. Pourquoi ce modèle de base de données ?
+- Une table `short_urls` pour stocker le mapping, le code court, le compteur de clics, les timestamps.
+- Une table `clicks` pour historiser chaque clic (utile pour analyses futures).
+- Indexation sur `short_code` pour la rapidité des recherches.
+
+## 3. Comment ajouter une nouvelle fonctionnalité (ex : expiration d'URL) ?
+- Ajouter une colonne `expires_at` à la table `short_urls` (migration).
+- Adapter la logique dans `RedirectController` pour vérifier la validité avant de rediriger.
+- Ajouter la gestion de l'expiration dans l'API (création, stats).
+
+## 4. Que faire si on veut des codes courts personnalisés ?
+- Ajouter un champ optionnel dans la requête POST `/api/shorten`.
+- Vérifier l'unicité de ce code avant création.
+- Adapter la validation dans le contrôleur.
+
+## 5. Pour un raccourcissement en masse ?
+- Accepter un tableau d'URLs dans la requête.
+- Boucler sur la génération et le mapping.
+- Retourner un tableau de résultats.
+
+## 6. Comment améliorer la sécurité ?
+- Valider et filtrer les URLs pour éviter les redirections malicieuses.
+- Limiter le nombre de créations par IP (rate limiting).
+- Ajouter une authentification si on veut gérer la propriété des liens.
+
+## 7. Et si tu devais refaire ce projet sans connexion internet ?
+1. Créer un nouveau projet Laravel (`composer create-project ...`).
+2. Configurer le `.env` pour MySQL.
+3. Générer les modèles et migrations (`php artisan make:model ... -m`).
+4. Implémenter les contrôleurs et routes.
+5. Lancer les migrations (`php artisan migrate`).
+6. Tester avec Postman ou curl.
+
+## 8. Comment prouver que tu es bien l'auteur ?
+- Je peux expliquer chaque ligne de code, chaque choix d'implémentation, et détailler la logique métier.
+- Je peux modifier ou ajouter une fonctionnalité en direct (ex : ajout de stats avancées, ou d'une nouvelle validation).
+
+## 9. Améliorations ou alternatives ?
+- Utiliser Redis pour le compteur de clics (scalabilité).
+- Ajouter Swagger pour la documentation API.
+- Ajouter des tests unitaires et d'intégration.
+- Dockeriser le projet pour simplifier le déploiement.
+- Ajouter l'authentification pour la gestion privée des liens.
+
+## 10. Points de vigilance
+- Gestion des collisions de codes courts.
+- Validation stricte des entrées.
+- Gestion des erreurs et des cas limites (404, DB down, etc.).
+
+## 11. Questions classiques d'entretien
+- "Comment garantir l'unicité et la rapidité du code court ?"
+- "Pourquoi avoir séparé API et redirection ?"
+- "Comment gérer la montée en charge ?"
+- "Comment tester la sécurité ?"
+- "Comment ajouter une fonctionnalité X ?"
+- "Si tu devais tout refaire, que changerais-tu ?"
+
+---
+
+Ce document te permet de réviser rapidement tous les choix techniques, les points d'amélioration, et d'être prêt à répondre à la plupart des questions d'entretien sur ce projet.
