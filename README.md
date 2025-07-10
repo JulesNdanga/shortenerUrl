@@ -211,7 +211,7 @@ Les endpoints critiques de l’API sont protégés contre les abus :
 ## Contact
 Pour toute question, contactez l'auteur du projet.
 
-- **[Jules NDANGA](julesndanga7@gail.com)**
+- **[Jules NDANGA](julesndanga7@gmail.com)**
 
 
 
