@@ -31,5 +31,8 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/admin', [AdminController::class, 'dashboard'])->name('admin.dashboard');
 });
 
+// Prévisualisation/vérification sécurité d'une URL courte
+Route::get('/preview/{short_code}', [\App\Http\Controllers\PreviewController::class, 'preview'])->where('short_code', '[A-Za-z0-9]+');
+
 // Route de redirection pour les codes courts
 Route::get('/{short_code}', [\App\Http\Controllers\RedirectController::class, 'redirect'])->where('short_code', '[A-Za-z0-9]+');

@@ -64,6 +64,14 @@ Des tests automatisés couvrent l'API (authentification, création de liens, his
 - Les tests utilisent une base SQLite en mémoire et réinitialisent la base à chaque exécution.
 - Pour permettre les tests API avec Sanctum, le middleware `EnsureFrontendRequestsAreStateful` est commenté dans le groupe `api` du Kernel. **Il faut le réactiver pour la production.**
 
+## Prévisualisation et sécurité des URL
+
+Chaque URL courte dispose d'une page de prévisualisation accessible via `/preview/{short_code}` :
+- Affiche l'URL d'origine et le code court.
+- Vérifie si l'URL cible est en HTTPS, si elle contient des mots-clés suspects (blacklist), et le statut HTTP de la cible.
+- Affiche un bouton "Continuer vers le site" désactivé si l'URL est blacklistée.
+- Permet à l'utilisateur de vérifier la sécurité avant de visiter la destination.
+
 ## Documentation API (Swagger)
 
 Une documentation interactive de l'API est intégrée au projet !
