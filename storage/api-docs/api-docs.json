@@ -1,0 +1,260 @@
+{
+    "openapi": "3.0.0",
+    "paths": {
+        "/api/shorten": {
+            "post": {
+                "tags": [
+                    "ShortUrl"
+                ],
+                "summary": "Crée une nouvelle URL courte",
+                "operationId": "d9c40528b1972436cc9c3e6a82c854b9",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "url"
+                                ],
+                                "properties": {
+                                    "url": {
+                                        "type": "string",
+                                        "example": "https://google.com"
+                                    },
+                                    "custom_code": {
+                                        "type": "string",
+                                        "example": "moncode"
+                                    },
+                                    "expires_at": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2025-12-31T23:59:59"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "URL raccourcie créée",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "short_url": {
+                                            "type": "string"
+                                        },
+                                        "original_url": {
+                                            "type": "string"
+                                        },
+                                        "short_code": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/stats/{short_code}": {
+            "get": {
+                "tags": [
+                    "ShortUrl"
+                ],
+                "summary": "Statistiques d'une URL courte",
+                "operationId": "f545455e2bfa429528bed0c330a6c1c5",
+                "parameters": [
+                    {
+                        "name": "short_code",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Statistiques de l'URL courte",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "original_url": {
+                                            "type": "string"
+                                        },
+                                        "short_code": {
+                                            "type": "string"
+                                        },
+                                        "click_count": {
+                                            "type": "integer"
+                                        },
+                                        "created_at": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "URL courte introuvable"
+                    }
+                }
+            }
+        },
+        "/api/shorten/batch": {
+            "post": {
+                "tags": [
+                    "ShortUrl"
+                ],
+                "summary": "Raccourcissement d'URL en masse",
+                "operationId": "022750f644619d6579be1678e976a63c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "items"
+                                ],
+                                "properties": {
+                                    "items": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "url": {
+                                                    "type": "string",
+                                                    "example": "https://google.com"
+                                                },
+                                                "custom_code": {
+                                                    "type": "string",
+                                                    "example": "codeperso"
+                                                },
+                                                "expires_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2025-12-31T23:59:59"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Résultats du batch",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "results": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "status": {
+                                                        "type": "string"
+                                                    },
+                                                    "short_url": {
+                                                        "type": "string"
+                                                    },
+                                                    "original_url": {
+                                                        "type": "string"
+                                                    },
+                                                    "short_code": {
+                                                        "type": "string"
+                                                    },
+                                                    "message": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/history": {
+            "get": {
+                "tags": [
+                    "ShortUrl"
+                ],
+                "summary": "Historique des liens de l'utilisateur connecté",
+                "operationId": "78fa3b443a0954c25088be8d89553234",
+                "responses": {
+                    "200": {
+                        "description": "Liste des liens",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "short_code": {
+                                                "type": "string"
+                                            },
+                                            "original_url": {
+                                                "type": "string"
+                                            },
+                                            "created_at": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                            },
+                                            "click_count": {
+                                                "type": "integer"
+                                            },
+                                            "expires_at": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "ShortUrl",
+            "description": "ShortUrl"
+        }
+    ]
+}

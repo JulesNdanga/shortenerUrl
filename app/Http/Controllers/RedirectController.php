@@ -24,6 +24,12 @@ class RedirectController extends Controller
             return response()->view('errors.404', [], 404);
         }
 
+        // Vérifier expiration
+        if ($shortUrl->expires_at && Carbon::now()->greaterThan($shortUrl->expires_at)) {
+            // URL expirée
+            return response()->view('errors.expired', ['short_code' => $short_code], 410);
+        }
+
         // Incrémenter le compteur de clics
         $shortUrl->increment('click_count');
 

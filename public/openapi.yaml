@@ -1,0 +1,216 @@
+openapi: 3.0.0
+info:
+  title: Laravel URL Shortener API
+  version: 1.0.0
+  description: |
+    API pour raccourcisseur d'URL avec gestion des utilisateurs, propriété des liens, expiration, batch, historique, et administration.
+    
+    Authentification par token (Sanctum).
+servers:
+  - url: http://localhost:8000/api
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ShortUrl:
+      type: object
+      properties:
+        short_code:
+          type: string
+        original_url:
+          type: string
+        short_url:
+          type: string
+        click_count:
+          type: integer
+        expires_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        user_id:
+          type: integer
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        is_admin:
+          type: boolean
+
+security:
+  - BearerAuth: []
+
+paths:
+  /register:
+    post:
+      summary: Inscription utilisateur
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+                password_confirmation:
+                  type: string
+      responses:
+        '200':
+          description: Utilisateur inscrit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /login:
+    post:
+      summary: Connexion utilisateur
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Utilisateur connecté
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /shorten:
+    post:
+      summary: Raccourcir une URL
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                custom_code:
+                  type: string
+                expires_at:
+                  type: string
+                  format: date-time
+      responses:
+        '200':
+          description: URL raccourcie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShortUrl'
+  /shorten/batch:
+    post:
+      summary: Raccourcissement en masse
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                      custom_code:
+                        type: string
+                      expires_at:
+                        type: string
+                        format: date-time
+      responses:
+        '200':
+          description: Résultats du batch
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ShortUrl'
+  /history:
+    get:
+      summary: Historique des liens de l'utilisateur
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Liste des liens
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ShortUrl'
+  /stats/{short_code}:
+    get:
+      summary: Statistiques d'une URL courte
+      parameters:
+        - in: path
+          name: short_code
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Statistiques
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  original_url:
+                    type: string
+                  short_code:
+                    type: string
+                  click_count:
+                    type: integer
+                  created_at:
+                    type: string
+                    format: date-time
+  /logout:
+    post:
+      summary: Déconnexion utilisateur
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Déconnecté avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string

@@ -44,11 +44,94 @@ Ce projet est un service de raccourcissement d'URL (type bit.ly/tinyurl) dévelo
    php artisan serve
    ```
 
+## Interface utilisateur web (accès et navigation)
+
+- **Accueil (`/`)** : page d’introduction et navigation vers toutes les fonctionnalités.
+- **Raccourcir une URL (`/shorten`)** : formulaire pour raccourcir une URL unique, avec code personnalisé et date d’expiration.
+- **Raccourcissement en masse (`/batch`)** : formulaire pour coller plusieurs URLs, options avancées par ligne, résultats en tableau.
+- **Statistiques (`/stats`)** : formulaire pour consulter les statistiques d’un code court.
+- **Historique (`/history`)** : tableau listant tous les liens générés (code, URL d’origine, URL courte, date, clics, expiration).
+- Toutes ces pages sont intégrées à Laravel (Blade, navigation commune).
+
+## Documentation API (Swagger)
+
+Une documentation interactive de l'API est intégrée au projet !
+
+- Accède à la doc Swagger sur : [http://localhost:8000/api/documentation](http://localhost:8000/api/documentation) après avoir démarré le serveur Laravel (`php artisan serve`).
+- Tu peux explorer, tester tous les endpoints, consulter les schémas, et récupérer les exemples de requêtes/réponses.
+- La doc est générée automatiquement à partir des annotations présentes dans les contrôleurs API.
+- Pour régénérer la doc manuellement :
+  ```bash
+  vendor/bin/openapi --output storage/api-docs/api-docs.json app/Http/Controllers/Api
+  ```
+- Plus de fichier openapi.yaml : tout est centralisé et interactif via Swagger UI.
+
+## Pages protégées et Administration
+
+Certaines pages (raccourcissement, batch, historique) sont accessibles uniquement aux utilisateurs connectés.
+
+Une interface d'administration est disponible :
+- Accès via `/admin/login` (login par défaut : admin@admin.com / admin123, à créer dans la base).
+- Dashboard admin pour gérer les utilisateurs et liens (évolutif).
+
+Les formulaires d'authentification affichent des messages de succès/erreur UX-friendly.
+
+## Authentification & Propriété des URLs
+
+Le service propose une authentification API (Laravel Sanctum) :
+- Enregistrement (`POST /api/register`) et connexion (`POST /api/login`) : chaque utilisateur obtient un token d’accès.
+- Les endpoints de création d’URL courte, de batch et d’historique sont réservés aux utilisateurs authentifiés (via le token).
+- Chaque URL créée est associée à l’utilisateur connecté (champ `user_id`).
+- L’historique (`/api/history`) ne retourne que les liens de l’utilisateur connecté.
+- Un endpoint de déconnexion (`POST /api/logout`) permet de révoquer le token.
+
+Cela garantit la confidentialité, la sécurité et la propriété des liens générés.
+
+## Limitation du débit (Rate Limiting)
+
+Les endpoints critiques de l’API sont protégés contre les abus :
+- **POST `/api/shorten`** et **POST `/api/shorten/batch`** : maximum 10 requêtes par minute par IP.
+- En cas de dépassement, le serveur retourne une réponse **HTTP 429 Too Many Requests** avec un message d’erreur standard Laravel.
+- Cette limitation protège le service contre les usages excessifs ou malveillants.
+
 ## Endpoints API
 
 - **POST `/api/shorten`**
-  - Corps : `{ "url": "https://example.com/very/long/url" }`
-  - Réponse : `{ "short_url": "http://localhost:8000/abc123", "original_url": "...", "short_code": "abc123" }`
+
+- **POST `/api/shorten/batch`** (raccourcissement en masse)
+  - Corps : `{ "items": [ { "url": "https://ex1.com", "custom_code": "promo1", "expires_at": "2025-07-15 23:59:59" }, { "url": "https://ex2.com" } ] }`
+  - Chaque objet peut contenir `url` (obligatoire), `custom_code` (optionnel), `expires_at` (optionnel).
+  - Réponse :
+    ```json
+    {
+      "results": [
+        { "status": "created", "short_url": "http://localhost:8000/promo1", "original_url": "https://ex1.com", "short_code": "promo1" },
+        { "status": "created", "short_url": "http://localhost:8000/abc123", "original_url": "https://ex2.com", "short_code": "abc123" }
+      ]
+    }
+    ```
+  - Si un code existe déjà :
+    ```json
+    { "status": "exists", "message": "Ce code court personnalisé existe déjà.", ... }
+    ```
+  - Si erreur sur une entrée :
+    ```json
+    { "status": "error", "original_url": "...", "message": "..." }
+    ```
+  - Corps : `{ "url": "https://example.com/very/long/url", "custom_code": "monalias2025" }`
+    - `custom_code` est optionnel (alphanumérique, 4 à 32 caractères). Si fourni et unique, il sera utilisé comme code court.
+    - `expires_at` est optionnel (format ISO8601 ou `YYYY-MM-DD HH:MM:SS`). Si fourni, le lien expirera à cette date et ne sera plus accessible après.
+    - Si le code personnalisé existe déjà, l'API retourne une réponse 200 avec le mapping existant et un message explicite (pas d'erreur).
+  - Exemple de réponse si le code existe déjà :
+    ```json
+    {
+      "message": "Ce code court personnalisé existe déjà.",
+      "short_url": "http://localhost:8000/monalias2025",
+      "original_url": "https://example.com/long/url",
+      "short_code": "monalias2025"
+    }
+    ```
+  - Réponse standard (création réussie) : `{ "short_url": "http://localhost:8000/monalias2025", "original_url": "...", "short_code": "monalias2025" }`
 
 - **GET `/api/stats/{short_code}`**
   - Réponse : `{ "original_url": "...", "short_code": "...", "click_count": 5, "created_at": "..." }`

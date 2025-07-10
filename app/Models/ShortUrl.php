@@ -14,6 +14,8 @@ class ShortUrl extends Model
         'original_url',
         'short_code',
         'click_count',
+        'expires_at', // Date d'expiration optionnelle
+        'user_id', // Propriétaire de l'URL
     ];
 
     /**
@@ -22,6 +24,14 @@ class ShortUrl extends Model
     public function clicks()
     {
         return $this->hasMany(Click::class);
+    }
+
+    /**
+     * Propriétaire de l'URL courte
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }
 

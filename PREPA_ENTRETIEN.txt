@@ -11,19 +11,45 @@
 - Indexation sur `short_code` pour la rapidité des recherches.
 
 ## 3. Comment ajouter une nouvelle fonctionnalité (ex : expiration d'URL) ?
-- Ajouter une colonne `expires_at` à la table `short_urls` (migration).
-- Adapter la logique dans `RedirectController` pour vérifier la validité avant de rediriger.
-- Ajouter la gestion de l'expiration dans l'API (création, stats).
+- (Déjà implémenté) Ajout d'une colonne `expires_at` à la table `short_urls` (migration).
+- Lors de la création d'une URL courte (`POST /api/shorten`), on peut fournir `expires_at` (date d'expiration, format ISO8601 ou `YYYY-MM-DD HH:MM:SS`).
+- Si la date est dépassée, la redirection est bloquée et une page d'expiration s'affiche (HTTP 410).
+- Pour modifier la logique (ex : notification avant expiration, suppression automatique), il suffit d'adapter le contrôleur ou d'ajouter une tâche planifiée.
 
-## 4. Que faire si on veut des codes courts personnalisés ?
-- Ajouter un champ optionnel dans la requête POST `/api/shorten`.
-- Vérifier l'unicité de ce code avant création.
-- Adapter la validation dans le contrôleur.
+## 4. Codes courts personnalisés : fonctionnement et conception
+- Le champ `custom_code` est optionnel dans la requête POST `/api/shorten`.
+- Si fourni, il doit être alphanumérique (4 à 32 caractères) et unique.
+- Si le code existe déjà, l'API retourne une réponse 200 (et non une erreur), avec le mapping existant et un message explicite (expérience utilisateur améliorée).
+- Sinon, le code est utilisé pour l'URL courte. Si non fourni, un code aléatoire est généré automatiquement.
+- Avantage : l'utilisateur peut choisir un alias mémorable, tout en étant certain de ne pas écraser un code existant.
 
-## 5. Pour un raccourcissement en masse ?
-- Accepter un tableau d'URLs dans la requête.
-- Boucler sur la génération et le mapping.
-- Retourner un tableau de résultats.
+## 5. Limitation du débit (Rate Limiting)
+- Les endpoints POST `/api/shorten` et `/api/shorten/batch` sont limités à 10 requêtes/minute par IP (middleware Laravel throttle).
+- Si la limite est dépassée, le serveur retourne HTTP 429 (Too Many Requests) avec un message d’erreur explicite.
+- Cela protège l’API contre les abus, les scripts automatisés et garantit la disponibilité du service pour tous.
+
+## 6. Raccourcissement en masse : côté interface utilisateur (UX)
+- L'utilisateur colle plusieurs URLs dans un champ multiligne (une URL par ligne).
+- Pour chaque URL, il peut saisir un code personnalisé et une date d'expiration via des champs dédiés.
+- Il clique sur « Préparer les options » puis « Raccourcir toutes les URLs ».
+- L'interface web (batch.html) transforme ces entrées en requête adaptée à l'API `/api/shorten/batch`.
+- Les résultats sont affichés ligne par ligne dans un tableau (succès, erreurs, conflits).
+- L'utilisateur n'a jamais à manipuler le format JSON : tout est automatisé côté front-end.
+
+- L'utilisateur prépare un tableau d'URLs à raccourcir (avec éventuellement des codes personnalisés et dates d'expiration).
+- Il envoie ce tableau via l'API `/api/shorten/batch` (méthode POST) :
+  - Outils recommandés : Postman, Insomnia, curl, script JS, ou future interface web dédiée.
+  - Exemple de payload :
+    ```json
+    {
+      "items": [
+        { "url": "https://ex1.com", "custom_code": "promo1", "expires_at": "2025-07-15 23:59:59" },
+        { "url": "https://ex2.com" }
+      ]
+    }
+    ```
+- L'API retourne un tableau de résultats (succès, erreur, code déjà existant pour chaque entrée).
+- UX : pour une interface graphique, prévoir un formulaire permettant d'ajouter plusieurs URLs, de visualiser les résultats ligne par ligne et d'afficher clairement les erreurs ou conflits de codes.
 
 ## 6. Comment améliorer la sécurité ?
 - Valider et filtrer les URLs pour éviter les redirections malicieuses.
@@ -49,11 +75,22 @@
 - Dockeriser le projet pour simplifier le déploiement.
 - Ajouter l'authentification pour la gestion privée des liens.
 
-## 10. Points de vigilance
+## 11. Documentation API (Swagger/OpenAPI)
+- Fichier `public/openapi.yaml` (OpenAPI 3/Swagger) décrivant toute l’API.
+- Peut être ouvert dans Swagger Editor pour visualisation, test, doc interactive.
+- Atout fort pour l’entretien : démontre la rigueur et la professionnalisation de l’API.
+
+## 10. Pages protégées et administration
+- Certaines pages (raccourcissement, batch, historique) sont accessibles uniquement aux utilisateurs connectés.
+- Interface d'administration (login par défaut admin@admin.com/admin123), dashboard évolutif.
+- Affichage UX des messages de succès/erreur sur les formulaires.
+
+## 11. Points de vigilance
 - Gestion des collisions de codes courts.
 - Validation stricte des entrées.
 - Gestion des erreurs et des cas limites (404, DB down, etc.).
 
+## 12. Questions classiques d'entretien
 ## 11. Questions classiques d'entretien
 - "Comment garantir l'unicité et la rapidité du code court ?"
 - "Pourquoi avoir séparé API et redirection ?"
